@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netflix Clone</title>
+    <link rel="stylesheet" href="{% static 'catalog/css/style.css' %}">
+</head>
+<body>
+    <header class="navbar" id="navbar">
+        <div class="navbar-left">
+            <h1 class="logo">NETFLIX</h1>
+            <ul class="nav-links">
+                <li class="active">Inicio</li>
+                <li>Series</li>
+                <li>Películas</li>
+                <li>Mi lista</li>
+            </ul>
+        </div>
+        <div class="navbar-right">
+            <span class="icon">🔍</span>
+            <span class="icon">🔔</span>
+            <span class="avatar">🙂</span>
+        </div>
+    </header>
+
+    <section class="hero {% if not hero.image_url %}{{ hero.color }}{% endif %}"
+              {% if hero.image_url %}style="background-image: url('{{ hero.image_url }}')"{% endif %}>
+        <div class="hero-content">
+            <h2 class="hero-title">{{ hero.title }}</h2>
+            <p class="hero-description">{{ hero.description }}</p>
+            <div class="hero-buttons">
+                <button class="btn btn-play">▶ Reproducir</button>
+                <button class="btn btn-info">ⓘ Más información</button>
+            </div>
+        </div>
+        <div class="hero-fade"></div>
+    </section>
+
+    <main class="rows">
+        {% for row in rows %}
+        <section class="row">
+            <h3 class="row-title">{{ row.title }}</h3>
+            <div class="row-track-wrapper">
+                <button class="row-arrow row-arrow-left">&#10094;</button>
+                <div class="row-track">
+                    {% for item in row.items %}
+                    <div class="card {% if not item.image_url %}{{ item.color }}{% endif %}"
+                         {% if item.image_url %}style="background-image: url('{{ item.image_url }}')"{% endif %}>
+                        <span class="card-title">{{ item.title }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button class="row-arrow row-arrow-right">&#10095;</button>
+            </div>
+        </section>
+        {% endfor %}
+    </main>
+
+    <footer class="footer">
+        <p>Clon educativo de Netflix &mdash; hecho con Django, HTML, CSS y JS.</p>
+    </footer>
+
+    <script src="{% static 'catalog/js/main.js' %}"></script>
+</body>
+</html>
