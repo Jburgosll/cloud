@@ -1,9 +1,12 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
-from .models import Movie
+from .forms import CatalogForm, MovieForm
+from .models import Catalog, Movie
 
 # Datos de respaldo: se usan solo mientras no haya películas cargadas en la
-# base de datos (por ejemplo, antes de subir el primer poster vía el admin).
+# base de datos (por ejemplo, antes de subir el primer poster desde el panel).
 HERO = {
     "title": "Stranger Things",
     "description": "Cuando un niño desaparece, un pequeño pueblo descubre un misterio que "
@@ -61,14 +64,15 @@ def home(request):
         hero = HERO
 
     rows = []
-    for key, label in Movie.CATEGORY_CHOICES:
-        movies = Movie.objects.filter(category=key)
-        if movies.exists():
+    for catalog in Catalog.objects.prefetch_related('movies'):
+        movies = catalog.movies.all()
+        if movies:
             rows.append({
-                "title": label,
+                "title": catalog.name,
                 "items": [
                     {
                         "title": movie.title,
+                        "description": movie.description,
                         "image_url": movie.poster.url if movie.poster else None,
                         "color": f"c{(movie.pk % 6) + 1}",
                     }
@@ -79,3 +83,52 @@ def home(request):
         rows = ROWS
 
     return render(request, "catalog/home.html", {"hero": hero, "rows": rows})
+
+
+# ---------------------------------------------------------------------------
+# Panel de administración (simulación, sin usuarios): catálogos y películas
+# ---------------------------------------------------------------------------
+
+def panel(request):
+    catalog_form = CatalogForm()
+    movie_form = MovieForm()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'add_catalog':
+            catalog_form = CatalogForm(request.POST)
+            if catalog_form.is_valid():
+                catalog = catalog_form.save()
+                messages.success(request, f'Catálogo "{catalog.name}" creado.')
+                return redirect('panel')
+        elif action == 'add_movie':
+            movie_form = MovieForm(request.POST, request.FILES)
+            if movie_form.is_valid():
+                movie = movie_form.save()
+                messages.success(request, f'Película "{movie.title}" agregada.')
+                return redirect('panel')
+
+    return render(request, 'catalog/panel.html', {
+        'catalog_form': catalog_form,
+        'movie_form': movie_form,
+        'catalogs': Catalog.objects.prefetch_related('movies'),
+        'movies': Movie.objects.select_related('catalog'),
+    })
+
+
+@require_POST
+def delete_catalog(request, pk):
+    catalog = get_object_or_404(Catalog, pk=pk)
+    name = catalog.name
+    catalog.delete()
+    messages.success(request, f'Catálogo "{name}" eliminado (junto con sus películas).')
+    return redirect('panel')
+
+
+@require_POST
+def delete_movie(request, pk):
+    movie = get_object_or_404(Movie, pk=pk)
+    title = movie.title
+    movie.delete()
+    messages.success(request, f'Película "{title}" eliminada.')
+    return redirect('panel')

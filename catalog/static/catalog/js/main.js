@@ -24,10 +24,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    document.querySelectorAll('.card').forEach((card) => {
-        card.addEventListener('click', () => {
-            const title = card.querySelector('.card-title').textContent;
-            alert(`Reproduciendo: ${title}`);
+    // Modal de detalle: al hacer clic en una card se muestra la película
+    // con su imagen, título y descripción (estilo Netflix).
+    const modal = document.getElementById('movie-modal');
+
+    if (modal) {
+        const modalHero = document.getElementById('modal-hero');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDescription = document.getElementById('modal-description');
+        const closeButton = modal.querySelector('.modal-close');
+
+        const openModal = (card) => {
+            modalTitle.textContent = card.dataset.title || '';
+            modalDescription.textContent = card.dataset.description ||
+                'Próximamente más detalles de este título.';
+            // Copia el fondo de la card (poster subido o gradiente de respaldo)
+            modalHero.style.backgroundImage = getComputedStyle(card).backgroundImage;
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        document.querySelectorAll('.card').forEach((card) => {
+            card.addEventListener('click', () => openModal(card));
         });
-    });
+
+        closeButton.addEventListener('click', closeModal);
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    }
 });

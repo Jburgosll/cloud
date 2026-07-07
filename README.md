@@ -5,9 +5,9 @@ EC2 Linux (Apache/Nginx), EC2 Windows (IIS), RDS (MySQL) y S3 (servicio adiciona
 
 ## Estructura
 
-- `catalog/models.py` — modelo `Movie` (título, descripción, categoría, poster, si es el "hero").
-- `catalog/views.py` — si hay películas en la base de datos las muestra; si no, usa datos de ejemplo hardcodeados (para que el sitio nunca se vea roto).
-- `catalog/admin.py` — permite subir posters desde `/admin/` (esas imágenes son las que van a S3 cuando `USE_S3=True`).
+- `catalog/models.py` — modelos `Catalog` (categorías/filas del inicio) y `Movie` (título, descripción, catálogo, poster, si es el "hero").
+- `catalog/views.py` — home dinámico + panel de administración propio (`/panel/`) para crear catálogos y películas; si no hay datos usa ejemplos hardcodeados (para que el sitio nunca se vea roto).
+- `catalog/forms.py` — formularios de catálogos y películas.
 - `netflixclone/settings.py` — toda la configuración de RDS y S3 se activa/desactiva con variables de entorno del archivo `.env`.
 
 ## 1. Instalación local
@@ -16,12 +16,21 @@ EC2 Linux (Apache/Nginx), EC2 Windows (IIS), RDS (MySQL) y S3 (servicio adiciona
 pip install -r requirements.txt
 copy .env.example .env      # (ya viene creado un .env de ejemplo con todo en False)
 python manage.py migrate
-python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Entra a `/admin/`, crea películas y sube posters. Con `USE_S3=False` y `USE_RDS=False`
-todo funciona 100% local (SQLite + archivos en `media/`), ideal para desarrollar antes
+### Panel de administración (`/panel/`)
+
+Se entra directo con el enlace **"Administrar"** del navbar (sin usuarios ni login:
+es una simulación de la herramienta que se implementará más adelante).
+
+- **Nuevo catálogo** — crea las filas del inicio (ej. "Populares en Netflix") con su orden.
+- **Nueva película** — título, sinopsis, catálogo, poster (esa imagen va a S3 cuando `USE_S3=True`), opción de mostrarla en el banner principal y orden.
+- Listados con opción de eliminar catálogos (con sus películas) y películas.
+
+El `/admin/` clásico de Django sigue disponible como alternativa (requiere
+`python manage.py createsuperuser`). Con `USE_S3=False` y `USE_RDS=False` todo
+funciona 100% local (SQLite + archivos en `media/`), ideal para desarrollar antes
 de tocar AWS.
 
 ## 2. Servicio adicional: Amazon S3
@@ -112,7 +121,6 @@ Esto es lo que conecta el `Storage` de Django con S3 para servir `static/` y `me
 
    ```bash
    python manage.py migrate
-   python manage.py createsuperuser
    ```
 
 6. Para "conexión desde cliente externo" (requisito de la entrega), conéctate con
