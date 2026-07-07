@@ -149,14 +149,18 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images) y Media (posters subidos por el admin)
+# Static files (CSS, JavaScript) y Media (posters subidos desde el panel)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 #
-# Servicio adicional de la entrega: Amazon S3. Por defecto sirve los estáticos
-# y media en local; en el .env poner USE_S3=True y completar las credenciales
-# del bucket para que static/ y media/ se sirvan desde S3.
+# Servicio adicional de la entrega: Amazon S3, SOLO para las imágenes (media/).
+# El CSS y el JS se sirven siempre en local. En el .env poner USE_S3=True y
+# completar las credenciales del bucket para que los posters se guarden en S3.
 
 USE_S3 = env_bool('USE_S3', 'False')
+
+# Los estáticos (CSS/JS) siempre se sirven en local
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 if USE_S3:
     AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -174,16 +178,12 @@ if USE_S3:
             'OPTIONS': {'location': 'media'},
         },
         'staticfiles': {
-            'BACKEND': 'storages.backends.s3.S3Storage',
-            'OPTIONS': {'location': 'static'},
+            'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
         },
     }
 
-    STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 else:
-    STATIC_URL = 'static/'
-    STATIC_ROOT = BASE_DIR / 'staticfiles'
     MEDIA_URL = '/media/'
     MEDIA_ROOT = BASE_DIR / 'media'
 

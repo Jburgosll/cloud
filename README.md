@@ -35,8 +35,9 @@ de tocar AWS.
 
 ## 2. Servicio adicional: Amazon S3
 
-Esto es lo que conecta el `Storage` de Django con S3 para servir `static/` y `media/`
-(los posters que subes desde el admin).
+Esto es lo que conecta el `Storage` de Django con S3 para guardar y servir
+**solo las imágenes** (`media/posters/`, los posters que subes desde el panel).
+El CSS y el JS se sirven siempre en local.
 
 ### Pasos en la consola de AWS
 
@@ -79,26 +80,25 @@ Esto es lo que conecta el `Storage` de Django con S3 para servir `static/` y `me
    AWS_S3_REGION_NAME=us-east-1
    ```
 
-4. Sube los estáticos al bucket y corre el sitio:
+4. Reinicia el sitio:
 
    ```bash
-   python manage.py collectstatic --noinput
    python manage.py runserver
    ```
 
-   Al entrar al admin y subir un poster, el archivo se guarda directo en
+   Al subir un poster desde el panel (`/panel/`), el archivo se guarda directo en
    `s3://tu-bucket/media/posters/...` y la página lo muestra como imagen de fondo
    de la card (en vez del gradiente de color de respaldo).
 
 ### Qué mostrar en la sustentación
 
-- Consola S3 → el bucket con la carpeta `static/` (CSS/JS) y `media/posters/` (imágenes subidas).
+- Consola S3 → el bucket con la carpeta `media/posters/` (las imágenes subidas desde el panel).
 - El sitio funcionando con esas imágenes cargando desde la URL de S3 (puedes verlo en
   el inspector del navegador → pestaña Network → la URL de la imagen apunta a
-  `https://tu-bucket.s3.amazonaws.com/...`).
+  `https://tu-bucket.s3.us-east-1.amazonaws.com/media/posters/...`).
 - Explicar que Django usa `django-storages` + `boto3` como backend de almacenamiento
   (`STORAGES["default"]` en `settings.py`), así que el código de la app no cambia:
-  solo cambia dónde se guardan los archivos.
+  solo cambia dónde se guardan las imágenes.
 
 ## 3. RDS (MySQL)
 
